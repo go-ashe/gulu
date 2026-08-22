@@ -1,6 +1,6 @@
 module github.com/go-ashe/gulu
 
-go 1.24.7
+go 1.27.0
 
 require (
 	github.com/bwmarrin/snowflake v0.3.0

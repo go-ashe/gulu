@@ -14,11 +14,11 @@ type Json interface {
 }
 
 type JsonRsp struct {
-	Code        int         `json:"code"`
-	Msg         string      `json:"msg"`
-	MessageType int         `json:"messageType,omitempty"`
-	Reason      string      `json:"reason,omitempty"`
-	Data        interface{} `json:"data,omitempty"`
+	Code        int    `json:"code"`
+	Msg         string `json:"msg"`
+	MessageType int    `json:"messageType,omitempty"`
+	Reason      string `json:"reason,omitempty"`
+	Data        any    `json:"data,omitempty"`
 }
 
 func NewJson() Json {
@@ -29,7 +29,7 @@ func NewJson() Json {
 //
 //	args 应该是 [data], [data,err]或者空
 //	err 必须是 error
-func JsonResponse(args ...interface{}) Json {
+func JsonResponse(args ...any) Json {
 	rsp := NewJson()
 	if len(args) == 1 {
 		if args[0] != nil {
@@ -61,7 +61,7 @@ func (r *JsonRsp) WithCode(code int) Json {
 	return r
 }
 
-func (r *JsonRsp) WithData(data interface{}) Json {
+func (r *JsonRsp) WithData(data any) Json {
 	if reflect.ValueOf(data).IsZero() {
 		return r
 	}

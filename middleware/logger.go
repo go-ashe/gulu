@@ -2,14 +2,15 @@ package middleware
 
 import (
 	"bytes"
-	"github.com/gin-gonic/gin"
-	"github.com/go-ashe/gulu/logx"
-	"github.com/google/uuid"
 	"io"
 	"log/slog"
 	"net/http"
 	"strings"
 	"time"
+	"uuid"
+
+	"github.com/gin-gonic/gin"
+	"github.com/go-ashe/gulu/logx"
 )
 
 func Logger(c *gin.Context) {

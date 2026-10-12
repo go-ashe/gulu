@@ -1,10 +1,11 @@
 package ws
 
 import (
-	"github.com/go-ashe/gulu/slogx"
-	"github.com/gorilla/websocket"
 	"net/http"
 	"sync"
+
+	"github.com/go-ashe/gulu/logx"
+	"github.com/gorilla/websocket"
 )
 
 type Server struct {
@@ -37,12 +38,12 @@ func (s *Server) CloseClient(cli *Client) {
 	if err := cli.Conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, "")); err != nil {
 		// 如果连接已经关闭，忽略 "websocket: already closed" 错误
 		if !websocket.IsCloseError(err, websocket.CloseNormalClosure) {
-			slogx.L().Error("[WebSocket] Error sending close message", "error", err)
+			logx.L().Error("[WebSocket] Error sending close message", "error", err)
 		}
 	}
 
 	if err := cli.Conn.Close(); err != nil {
-		slogx.L().Error("[WebSocket] Error closing WebSocket client", "error", err.Error())
+		logx.L().Error("[WebSocket] Error closing WebSocket client", "error", err.Error())
 	}
 
 	// 从 clients 中移除该连接

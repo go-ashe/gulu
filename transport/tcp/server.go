@@ -3,9 +3,10 @@ package tcp
 import (
 	"context"
 	"fmt"
-	"github.com/go-ashe/gulu/slogx"
 	"net"
 	"sync"
+
+	"github.com/go-ashe/gulu/logx"
 )
 
 type TCPServer struct {
@@ -36,13 +37,13 @@ func (s *TCPServer) Start(_ context.Context) error {
 	}
 
 	s.listener = listener
-	slogx.L().Info("服务器启动成功", "listen_addr", addr)
+	logx.L().Info("服务器启动成功", "listen_addr", addr)
 
 	go func() {
 		for {
 			conn, err2 := s.listener.Accept()
 			if err2 != nil {
-				slogx.L().Error("接受连接失败", "error", err2.Error())
+				logx.L().Error("接受连接失败", "error", err2.Error())
 				continue
 			}
 

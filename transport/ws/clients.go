@@ -2,10 +2,11 @@ package ws
 
 import (
 	"fmt"
-	"github.com/go-ashe/gulu/slogx"
-	"github.com/gorilla/websocket"
 	"sync"
 	"time"
+
+	"github.com/go-ashe/gulu/logx"
+	"github.com/gorilla/websocket"
 )
 
 type Client struct {
@@ -36,13 +37,13 @@ func (c *Client) WritePump(s *Server) {
 				return
 			}
 			if err := c.Conn.WriteJSON(msg); err != nil {
-				slogx.L().Error("[WebSocket] Error writing message", "error", err.Error())
+				logx.L().Error("[WebSocket] Error writing message", "error", err.Error())
 				return
 			}
 		case <-ticker.C:
 			// ping 心跳
 			if err := c.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {
-				slogx.L().Error("[WebSocket] WritePump ping error", "error", err.Error())
+				logx.L().Error("[WebSocket] WritePump ping error", "error", err.Error())
 				return
 			}
 		}
@@ -54,11 +55,11 @@ func (c *Client) ReadPump(s *Server) {
 	var err error
 	c.Conn.SetReadLimit(512)
 	if err = c.Conn.SetReadDeadline(time.Now().Add(30 * time.Second)); err != nil {
-		slogx.L().Error("[WebSocket] ReadPump SetReadDeadline error", "error", err.Error())
+		logx.L().Error("[WebSocket] ReadPump SetReadDeadline error", "error", err.Error())
 	}
 	c.Conn.SetPongHandler(func(string) error {
 		if err = c.Conn.SetReadDeadline(time.Now().Add(30 * time.Second)); err != nil {
-			slogx.L().Error("[WebSocket] ReadPump SetPongHandler SetReadDeadline error", "error", err.Error())
+			logx.L().Error("[WebSocket] ReadPump SetPongHandler SetReadDeadline error", "error", err.Error())
 		}
 		return nil
 	})
@@ -70,7 +71,7 @@ func (c *Client) ReadPump(s *Server) {
 					websocket.CloseNormalClosure,
 					websocket.CloseUnsupportedData,
 					websocket.CloseNoStatusReceived) {
-					slogx.L().Error("[WebSocket] ReadPump client disconnected", "id", c.Id)
+					logx.L().Error("[WebSocket] ReadPump client disconnected", "id", c.Id)
 				}
 				c.Close(s)
 				break
@@ -84,6 +85,6 @@ func (c *Client) Close(s *Server) {
 		s.clients.Delete(c.Id)
 		close(c.SendCh)
 		err := c.Conn.Close()
-		slogx.L().Info(fmt.Sprintf("[WebSocket] Client[%s] %s closed, error:%v", c.Conn.RemoteAddr().String(), c.Id, err))
+		logx.L().Info(fmt.Sprintf("[WebSocket] Client[%s] %s closed, error:%v", c.Conn.RemoteAddr().String(), c.Id, err))
 	})
 }

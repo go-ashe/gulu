@@ -2,11 +2,13 @@ package mqttx
 
 import (
 	"context"
-	"fmt"
-	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"log"
+	"slices"
 	"strings"
 	"time"
+
+	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/go-ashe/gulu/logx"
 )
 
 type Config struct {
@@ -18,6 +20,11 @@ type Config struct {
 	Clean     bool   `json:"clean" yaml:"clean"`
 	KeepAlive int    `json:"keep_alive" yaml:"keep_alive"`
 	Timeout   int    `json:"timeout" yaml:"timeout"`
+
+	// PublishLogTopics 指定打印发送日志的 topic 最后一段，按名称精确匹配。
+	// 例如配置 command 可匹配 device/{serialNumber}/command。
+	// nil 或空列表关闭发送日志，发送失败日志也受此配置影响。
+	PublishLogTopics []string `json:"publish_log_topics" yaml:"publish_log_topics"`
 }
 
 type Server struct {
@@ -70,15 +77,18 @@ func (s *Server) resubscribeAll() {
 }
 
 // Publish 发布消息
-func (s *Server) Publish(topic string, payload interface{}) error {
-	if !strings.Contains(topic, "state") {
-		fmt.Printf("===[MQTT] 发送消息，topic:%s, data:%s\n", topic, payload)
-	}
+func (s *Server) Publish(topic string, payload any) (err error) {
+	defer func() {
+		topicName := topic[strings.LastIndexByte(topic, '/')+1:]
+		if slices.Contains(s.config.PublishLogTopics, topicName) {
+			logx.Info("===[MQTT] 发送消息", "topic", topic, "data", payload, "error", err)
+		}
+	}()
+
 	if token := s.client.Publish(topic, s.config.QoS, false, payload); token.Wait() && token.Error() != nil {
-		fmt.Printf("===[MQTT] 发送消息失败，topic:%s\n", topic)
-		return token.Error()
+		err = token.Error()
 	}
-	return nil
+	return
 }
 
 // Subscribe 单个订阅
